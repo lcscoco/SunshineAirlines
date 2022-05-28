@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.wtbu.dao.UserDao">
+    <select id="findUserByEmail" resultType="map">
+        select * from users where email = #{email}
+    </select>
+
+    <select id="findUserByEmailAndPassword" resultType="map">
+        select * from users where email = #{email} and password = #{password}
+    </select>
+
+    <select id="findUserList" resultType="map">
+        select * from users
+        <where>
+            <if test="roleId==0">
+                (firstName like concat('%',#{name},'%') or lastName like concat('%',#{name},'%'))
+            </if>
+            <if test="roleId>0">
+                roleId = #{roleId} and (firstName like concat('%',#{name},'%') or lastName like concat('%',#{name},'%'))
+            </if>
+            order by firstName limit #{startPage},#{pageSize}
+        </where>
+    </select>
+    
+    <select id="findUserCount" resultType="int">
+        select count(*) from users
+        <where>
+            <if test="roleId==0">
+                (firstName like concat('%',#{name},'%') or lastName like concat('%',#{name},'%'))
+            </if>
+            <if test="roleId>0">
+                roleId = #{roleId} and (firstName like concat('%',#{name},'%') or lastName like concat('%',#{name},'%'))
+            </if>
+        </where>
+    </select>
+
+    <insert id="addUser">
+        insert into users (email,firstName,lastName,gender,dateOfBirth,phone,photo,address,roleId,password) values (#{email},#{firstName},#{lastName},#{gender},#{dateOfBirth},#{phone},#{photo},#{address},#{roleId},#{password})
+    </insert>
+
+    <select id="findUserById" resultType="map">
+        select * from users where userId = #{userId}
+    </select>
+
+    <update id="updatePassword">
+        update users set password = #{password} where userId = #{userId}
+    </update>
+</mapper>

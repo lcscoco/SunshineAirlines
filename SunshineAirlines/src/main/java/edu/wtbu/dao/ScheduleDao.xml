@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu.wtbu.dao.ScheduleDao">
+    <select id="getSchedule" resultType="map">
+        SELECT
+            ScheduleId,Date,Time,DepartureAirportIATA,c1.CityName DepartCityName,ArrivalAirportIATA,c2.CityName ArriveCityName,
+            `Name`,EconomyPrice,FlightNumber,Gate,`Status`
+        FROM `schedule`
+            LEFT JOIN route on route.RouteId = `schedule`.RouteId
+            LEFT JOIN airport a1 on a1.IATACode = route.ArrivalAirportIATA
+            LEFT JOIN airport a2 on a2.IATACode = route.DepartureAirportIATA
+            LEFT JOIN city c1 on c1.CityCode = a1.CityCode
+            LEFT JOIN city c2 on c2.CityCode = a2.CityCode
+            LEFT JOIN aircraft on aircraft.AircraftId = `schedule`.AircraftId
+        where c1.CityName = #{fromCity} and c2.CityName = #{toCity} and Date BETWEEN #{startDate} and #{endDate}
+    </select>
+
+    <select id="findScheduleById" resultType="map">
+        select * from schedule where scheduleId = #{scheduleId}
+    </select>
+
+    <update id="updateSchedule">
+        update schedule set status = #{status} where scheduleId = #{scheduleId}
+    </update>
+
+    <select id="getTicketStatistics" resultType="map">
+        SELECT
+            year(Date) Year,
+            month(Date) Month,
+            count(DISTINCT `schedule`.ScheduleId) FlightsAmount,
+            count(ReservationId) TicketsAmount,
+            sum(Payment) TicketsRevenue
+        FROM `schedule`
+            LEFT JOIN flightreservation on flightreservation.ScheduleId = `schedule`.ScheduleId
+        where `Status` = "Confirmed" and Date BETWEEN #{startDate} and #{endDate}
+        GROUP BY Year,Month
+        ORDER BY Year,Month
+    </select>
+</mapper>
